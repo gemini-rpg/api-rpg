@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from flask import Flask, request
 from flask_socketio import SocketIO, emit,send
 import json
@@ -50,6 +52,22 @@ class Personagem:
             'raca': self._raca
         }
 
+def clean_history(text):
+    # Remove tabulações e substituições Unicode
+    text = text.replace("\\t", "")
+    text = text.replace("\\n", "\n")
+    text = re.sub(r'\\u([0-9a-fA-F]{4})', lambda x: chr(int(x.group(1), 16)), text)
+    
+    # Remove caracteres especiais não ASCII e normaliza caracteres Unicode
+    text = ''.join(ch for ch in unicodedata.normalize('NFKD', text) if not unicodedata.combining(ch))
+    
+    # Remove barras verticais, hifens e espaços em excesso
+    text = re.sub(r'\|', '', text)
+    text = re.sub(r'---', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    return text
+
 @app.post("/create_session")        
 def create_gemini_session():
     # clear console
@@ -59,7 +77,13 @@ def create_gemini_session():
     j = json.loads(json_data)
     u = Personagem(**j)
     
-    chat_id = get_session(None,u)
+    chat_id = get_session(None, u)
+    chat_session = sessions[chat_id]
+    
+    initial_history = clean_history(chat_session.history[0].parts[0].text)
+    # initial_history = "\n".join([part.parts[0].text for part in chat_session.history])
+    
+    socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": initial_history}))
     return json.dumps({"chat_id": chat_id})
 
 @app.get("/sessions")
@@ -76,7 +100,7 @@ def chat():
     chat_session.send_message(message)
     messages = []
     for part in chat_session.history:
-        message = part.parts[0].text
+        message = clean_history(part.parts[0].text)
         role = part.role
         messages.append({"role": role, "message": message})
 
@@ -94,6 +118,7 @@ def create_history():
     chat_id = request.args.get("chat_id")
     chat_session = get_session(chat_id)
     
+    socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": clean_history(chat_session.history)}))
     return json.dumps({"chat_id": chat_id})
 
 @socketio.on('history_updated')
