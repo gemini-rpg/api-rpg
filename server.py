@@ -38,18 +38,18 @@ def get_session(uuid = None, personagem = None):
     return uuid
 
 class Personagem:
-    def __init__(self, nome, genero, classe, raca):
+    def __init__(self, nome, classe):
         self._nome = nome
-        self._genero = genero
+        # self._genero = genero
         self._classe = classe
-        self._raca = raca
+        # self._raca = raca
 
     def to_dict(self):
         return {
             'nome': self._nome,
-            'genero': self._genero,
+            # 'genero': self._genero,
             'classe': self._classe,
-            'raca': self._raca
+            # 'raca': self._raca
         }
 
 def clean_history(text):
@@ -62,8 +62,8 @@ def clean_history(text):
     text = ''.join(ch for ch in unicodedata.normalize('NFKD', text) if not unicodedata.combining(ch))
     
     # Remove barras verticais, hifens e espaços em excesso
-    text = re.sub(r'\|', '', text)
-    text = re.sub(r'---', '', text)
+    # text = re.sub(r'\|', '', text)
+    # text = re.sub(r'---', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text
@@ -80,11 +80,11 @@ def create_gemini_session():
     chat_id = get_session(None, u)
     chat_session = sessions[chat_id]
     
-    initial_history = clean_history(chat_session.history[0].parts[0].text)
+    initial_history = clean_history(chat_session.history[1].parts[0].text)
     # initial_history = "\n".join([part.parts[0].text for part in chat_session.history])
     
     socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": initial_history}))
-    return json.dumps({"chat_id": chat_id})
+    return json.dumps({"chat_id": chat_id, "historia": initial_history})
 
 @app.get("/sessions")
 def get_sessions():
