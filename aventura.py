@@ -76,12 +76,12 @@ def aventura_historia_opcoes(historia):
 		return
 
 def aventura(chat_session,personagem):
-	historia_instrucao = "No final, me dê três opções de ação numeradas de 1 a 3. *IMPORTANTE*: Esta aventura precisa acabar em 5 ações e, quando acabar, NÃO ofereça mais opções de continuação ao jogador e escreva: 'FIM.'."
+	historia_instrucao = "No final, me dê três opções de ação que não se repetem numeradas de 1 a 3. *IMPORTANTE*: Esta aventura **PRECISA** acabar em 5 ações e, quando acabar, NÃO ofereça mais opções de continuação ao jogador e escreva: 'FIM.'."
 	historia = chat_session.send_message(f'Inicie uma aventura rpg como se fosse um mestre. O meu personagem se chama {personagem._nome}, \
 										  sua classe é {personagem._classe} \
 												  {historia_instrucao} \n Formatação das escolhas:\n---\n\nEscolha uma ação:\n\n|1. Seguir o caminho pela floresta.|\n|2. Explorar o rio.|\n|3. Investigar a cabana.|\n---').text
 	
-
+										#    seu genero é {personagem._genero}, \
 											#   sua raça é {personagem._raca}. \
 
-										#    seu genero é {personagem._genero}, \
+										#    seu genero é {personagem._genero}, \																				#    seu genero é {personagem._genero}, \

@@ -84,7 +84,7 @@ def create_gemini_session():
     # initial_history = "\n".join([part.parts[0].text for part in chat_session.history])
     
     socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": initial_history}))
-    return json.dumps({"chat_id": chat_id, "historia": initial_history})
+    return json.dumps({"chat_id": chat_id, "message": initial_history})
 
 @app.get("/sessions")
 def get_sessions():
@@ -92,6 +92,7 @@ def get_sessions():
 
 @app.post("/chat")
 def chat():
+    print(request.get_json())
     chat_id = request.get_json()["chat_id"]
     message = request.get_json()["message"]
 
@@ -107,7 +108,7 @@ def chat():
     print(messages)
 
     socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": messages}))
-    return json.dumps({"chat_id": chat_id})
+    return json.dumps({"chat_id": chat_id, "message": messages})
 
 @app.route("/")
 def hello_world():
@@ -117,9 +118,10 @@ def hello_world():
 def create_history():
     chat_id = request.args.get("chat_id")
     chat_session = get_session(chat_id)
+    historia = clean_history(chat_session.history)
     
-    socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": clean_history(chat_session.history)}))
-    return json.dumps({"chat_id": chat_id})
+    socketio.emit("history_updated", json.dumps({"chat_id": chat_id, "messages": historia}))
+    return json.dumps({"chat_id": chat_id, "message": historia})
 
 @socketio.on('history_updated')
 def send_updated_history():
